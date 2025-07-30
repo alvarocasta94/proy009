@@ -1,5 +1,6 @@
 package es.cic.curso2025.proy009.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -22,6 +23,7 @@ public class Rama {
 
     @JsonIgnore
     @ManyToOne
+    @JsonBackReference
     private Arbol arbol;
 
     

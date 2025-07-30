@@ -18,6 +18,7 @@ import es.cic.curso2025.proy009.model.Arbol;
 import es.cic.curso2025.proy009.model.Rama;
 import es.cic.curso2025.proy009.repository.ArbolRepository;
 import es.cic.curso2025.proy009.repository.RamaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 public class ArbolServiceIntegrationTest {
@@ -43,7 +44,7 @@ public class ArbolServiceIntegrationTest {
         Arbol arbol = new Arbol();
         arbol.setPais("Argentina");
         arbol.setEdadAnios(128);
-        arbol.setDescripcion("Un arbol muy chulo en la Patagonia");
+        arbol.setDescripcion("Un árbol muy chulo en la Patagonia");
 
         Arbol arbolGuardado = arbolService.createArbol(arbol);
 
@@ -350,6 +351,7 @@ void testActualizarArbolConListaModificadaDeRamas() {
 }
 
 @Test
+@Transactional
 void testCargaPerezosaFetchTypeLAZY() {
     // Crear árbol con ramas
     Arbol arbol = new Arbol();
