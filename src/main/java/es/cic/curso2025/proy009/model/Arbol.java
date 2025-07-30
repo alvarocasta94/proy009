@@ -1,5 +1,6 @@
 package es.cic.curso2025.proy009.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -21,8 +22,24 @@ public class Arbol {
     private int edadAnios;
     private String descripcion;
 
-    @OneToMany(mappedBy = "arbol", cascade = { CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE }, fetch = FetchType.EAGER)
-    private List<Rama> ramas;
+    @OneToMany(mappedBy = "arbol", cascade = { CascadeType.PERSIST, CascadeType.REMOVE,
+            CascadeType.MERGE }, fetch = FetchType.LAZY, orphanRemoval = true)
+    private List<Rama> ramas = new ArrayList<>();
+
+    public void addRama(Rama rama) {
+        if (ramas == null) {
+            ramas = new ArrayList<>();
+        }
+        if (!ramas.contains(rama)) { // evita duplicados
+            ramas.add(rama);
+            rama.setArbol(this);
+        }
+    }
+
+    public void removeRama(Rama rama) {
+        ramas.remove(rama);
+        rama.setArbol(null);
+    }
 
     // Getters y setters
     public Long getId() {
@@ -59,10 +76,6 @@ public class Arbol {
 
     public void setEdadAnios(int edadAnios) {
         this.edadAnios = edadAnios;
-    }
-
-    public void setRamas(List<Rama> ramas) {
-        this.ramas = ramas;
     }
 
     @Override

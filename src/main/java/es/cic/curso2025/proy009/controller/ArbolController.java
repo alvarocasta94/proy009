@@ -28,7 +28,6 @@ public class ArbolController {
     @Autowired
     private ArbolService arbolService;
 
-
     @GetMapping("/{id}")
     public Optional<Arbol> getArbol(@PathVariable Long id) {
 
@@ -40,7 +39,6 @@ public class ArbolController {
 
     }
 
-
     @GetMapping("/ramas/{id}")
     public Optional<Rama> getRama(@PathVariable Long id) {
 
@@ -51,8 +49,6 @@ public class ArbolController {
         return rama;
 
     }
-
-    
 
     @GetMapping
     public List<Arbol> getAllArbol() {
@@ -81,27 +77,39 @@ public class ArbolController {
         }
 
         LOGGER.info("Enpoint POST /arboles subir árbol a BBDD");
-        arbol = arbolService.createArbol(arbol);
+        Arbol arbolCreado = arbolService.createArbol(arbol);
 
-        return arbol;
+        return arbolCreado;
     }
 
-     @PostMapping("/ramas")
-        public Rama createRamas(@RequestBody Rama rama) {
-            Rama ramaCreada = arbolService.createRama(rama);
-
-            return ramaCreada;
+    @PostMapping("/ramas")
+    public Rama createRama(@RequestBody Rama rama) {
+        if (rama.getId() != null) {
+            throw new ModificacionSecurityException("Has tratado de modificar mediante creación");
         }
 
+        LOGGER.info("Enpoint POST /arboles/ramas subir rama a BBDD");
+
+        Rama ramaCreada = arbolService.createRama(rama);
+
+        return ramaCreada;
+    }
+
     @PutMapping("/{id}")
-    public Arbol update(@PathVariable Long id, @RequestBody Arbol arbolActualizado) {
+    public Arbol updateArbol(@PathVariable Long id, @RequestBody Arbol arbolActualizado) {
         LOGGER.info("Endpoint PUT /arboles/{} actualizar árbol en BBDD", id);
+        if (arbolActualizado.getId() != null && !arbolActualizado.getId().equals(id)) {
+            throw new ModificacionSecurityException("El ID del árbol no coincide con el ID de la URL");
+        }
         return arbolService.updateArbol(id, arbolActualizado);
     }
 
     @PutMapping("/ramas/{id}")
-    public Rama update(@PathVariable Long id, @RequestBody Rama ramaActualizada) {
+    public Rama updateRama(@PathVariable Long id, @RequestBody Rama ramaActualizada) {
         LOGGER.info("Endpoint PUT /arboles/ramas/{} actualizar rama en BBDD", id);
+        if (ramaActualizada.getId() != null && !ramaActualizada.getId().equals(id)) {
+            throw new ModificacionSecurityException("El ID de la rama no coincide con el ID de la URL");
+        }
         return arbolService.updateRama(id, ramaActualizada);
     }
 

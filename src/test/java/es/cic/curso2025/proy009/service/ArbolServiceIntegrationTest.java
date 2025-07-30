@@ -235,4 +235,151 @@ public class ArbolServiceIntegrationTest {
         });
     }
 
+
+    @Test
+void testAñadirRamaALaListaDeUnArbolYPersistir() {
+    // Crear y guardar árbol
+    Arbol arbol = new Arbol();
+    arbol.setPais("España");
+    arbol.setEdadAnios(100);
+    arbol.setDescripcion("Un árbol en España");
+    Arbol arbolGuardado = arbolService.createArbol(arbol);
+
+    // Crear rama y añadir al árbol con método addRama
+    Rama rama = new Rama();
+    rama.setLongitud(10);
+    rama.setNumHojas(5);
+    arbolGuardado.addRama(rama);
+
+    // Guardar la rama y actualizar el árbol
+    ramaRepository.save(rama);
+    arbolService.updateArbol(arbolGuardado.getId(), arbolGuardado);
+
+    // Obtener árbol de BD y verificar relación
+    Optional<Arbol> desdeBD = arbolService.getArbol(arbolGuardado.getId());
+    assertTrue(desdeBD.isPresent());
+
+    List<Rama> ramas = desdeBD.get().getRamas();
+    assertFalse(ramas.isEmpty());
+    assertEquals(1, ramas.size());
+    assertEquals(10, ramas.get(0).getLongitud());
+}
+
+@Test
+void testEliminarRamaDeUnArbolYPersistirCambio() {
+    // Crear árbol y rama, establecer relación
+    Arbol arbol = new Arbol();
+    arbol.setPais("Portugal");
+    arbol.setEdadAnios(80);
+    arbol.setDescripcion("Un árbol en Portugal");
+
+    Rama rama = new Rama();
+    rama.setLongitud(15);
+    rama.setNumHojas(6);
+
+    arbol.addRama(rama);
+
+    // Guardar árbol y rama
+    arbolService.createArbol(arbol);
+    ramaRepository.save(rama);
+
+    // Ahora eliminar la rama de la lista y actualizar
+    arbol.removeRama(rama);
+    arbolService.updateArbol(arbol.getId(), arbol);
+
+    // Comprobar que rama ya no está en el árbol
+    Optional<Arbol> desdeBD = arbolService.getArbol(arbol.getId());
+    assertTrue(desdeBD.isPresent());
+    List<Rama> ramas = desdeBD.get().getRamas();
+    assertTrue(ramas.isEmpty());
+
+    // La rama sigue existiendo en BD, puedes eliminarla si quieres
+    assertTrue(ramaRepository.findById(rama.getId()).isPresent());
+}
+
+@Test
+void testActualizarArbolConListaModificadaDeRamas() {
+    // Crear árbol
+    Arbol arbol = new Arbol();
+    arbol.setPais("Francia");
+    arbol.setEdadAnios(120);
+    arbol.setDescripcion("Un árbol en Francia");
+
+    // Crear dos ramas y añadirlas
+    Rama rama1 = new Rama();
+    rama1.setLongitud(8);
+    rama1.setNumHojas(4);
+
+    Rama rama2 = new Rama();
+    rama2.setLongitud(12);
+    rama2.setNumHojas(7);
+
+    arbol.addRama(rama1);
+    arbol.addRama(rama2);
+
+    // Guardar árbol y ramas
+    arbolService.createArbol(arbol);
+    ramaRepository.save(rama1);
+    ramaRepository.save(rama2);
+
+    // Modificar lista de ramas: quitar rama1, añadir rama3
+    arbol.removeRama(rama1);
+
+    Rama rama3 = new Rama();
+    rama3.setLongitud(20);
+    rama3.setNumHojas(10);
+
+    arbol.addRama(rama3);
+    ramaRepository.save(rama3);
+
+    // Actualizar árbol
+    arbolService.updateArbol(arbol.getId(), arbol);
+
+    // Verificar que el árbol tiene ramas correctas
+    Optional<Arbol> desdeBD = arbolService.getArbol(arbol.getId());
+    assertTrue(desdeBD.isPresent());
+
+    List<Rama> ramas = desdeBD.get().getRamas();
+
+    assertEquals(2, ramas.size());
+    boolean contieneRama2 = ramas.stream().anyMatch(r -> r.getId().equals(rama2.getId()));
+    boolean contieneRama3 = ramas.stream().anyMatch(r -> r.getId().equals(rama3.getId()));
+
+    assertTrue(contieneRama2);
+    assertTrue(contieneRama3);
+}
+
+@Test
+void testCargaPerezosaFetchTypeLAZY() {
+    // Crear árbol con ramas
+    Arbol arbol = new Arbol();
+    arbol.setPais("Italia");
+    arbol.setEdadAnios(200);
+    arbol.setDescripcion("Un árbol en Italia");
+
+    Rama rama = new Rama();
+    rama.setLongitud(30);
+    rama.setNumHojas(15);
+
+    arbol.addRama(rama);
+
+    arbolService.createArbol(arbol);
+    ramaRepository.save(rama);
+
+    // Ahora cargar solo el árbol desde BD (fetch perezoso no carga las ramas aún)
+    Optional<Arbol> desdeBD = arbolRepository.findById(arbol.getId());
+    assertTrue(desdeBD.isPresent());
+
+    Arbol arbolCargado = desdeBD.get();
+
+    // No accedemos a ramas todavía, deberían no cargarse aún (esto no se puede verificar directamente sin herramientas, pero la siguiente línea fuerza la carga)
+    List<Rama> ramas = arbolCargado.getRamas();
+
+    // Al acceder a getRamas(), la colección debería cargarse sin error
+    assertNotNull(ramas);
+    assertFalse(ramas.isEmpty());
+    assertEquals(1, ramas.size());
+}
+
+
 }

@@ -1,5 +1,6 @@
 package es.cic.curso2025.proy009.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,54 +61,97 @@ public class ArbolService {
 
     public Arbol createArbol(Arbol arbol) {
 
-        LOGGER.info(String.format("Creación del árbol con id %s", arbol.getId()));
+        LOGGER.info(String.format("Creación de árbol"));
 
-        arbolRepository.save(arbol);
+        return arbolRepository.save(arbol);
 
-        return arbol;
+        
 
     }
 
     public Rama createRama(Rama rama) {
 
-        LOGGER.info(String.format("Creación de la rama con id %s", rama.getId()));
+        LOGGER.info(String.format("Creación de rama"));
 
-        ramaRepository.save(rama);
+        return ramaRepository.save(rama);
 
-        return rama;
+        
 
     }
 
     public Arbol updateArbol(Long id, Arbol arbolActualizado) {
-        LOGGER.info(String.format("Actualizando el árbol con id %d", id));
+    LOGGER.info(String.format("Actualizando el árbol con id %d", id));
 
-        Arbol existente = arbolRepository.findById(id)
-                .orElseThrow(() -> new EntidadNoEncontradaException("Árbol no encontrado con ID: " + id));
+    Arbol existente = arbolRepository.findById(id)
+            .orElseThrow(() -> new EntidadNoEncontradaException("Árbol no encontrado con ID: " + id));
 
-        // Aquí ignoras el arbolActualizado.getId() y actualizas solo los campos
-        // necesarios
-        existente.setPais(arbolActualizado.getPais());
-        existente.setEdadAnios(arbolActualizado.getEdadAnios());
-        existente.setDescripcion(arbolActualizado.getDescripcion());
-        existente.setRamas(arbolActualizado.getRamas());
+    // Actualiza campos simples
+    existente.setPais(arbolActualizado.getPais());
+    existente.setEdadAnios(arbolActualizado.getEdadAnios());
+    existente.setDescripcion(arbolActualizado.getDescripcion());
 
-        return arbolRepository.save(existente);
+    // Gestionar sincronización de ramas
+
+    // Primero, eliminar ramas que ya no están en el arbolActualizado
+    for (Rama ramaExistente : new ArrayList<>(existente.getRamas())) {
+        if (!arbolActualizado.getRamas().contains(ramaExistente)) {
+            existente.removeRama(ramaExistente);
+        }
     }
+
+    // Añadir o actualizar las ramas nuevas o existentes
+    for (Rama ramaNueva : arbolActualizado.getRamas()) {
+        if (!existente.getRamas().contains(ramaNueva)) {
+            existente.addRama(ramaNueva);
+        } else {
+            // Opcional: actualizar atributos de la rama existente
+            int index = existente.getRamas().indexOf(ramaNueva);
+            Rama ramaExistente = existente.getRamas().get(index);
+            ramaExistente.setLongitud(ramaNueva.getLongitud());
+            ramaExistente.setNumHojas(ramaNueva.getNumHojas());
+        }
+    }
+
+    return arbolRepository.save(existente);
+}
+
+
+
+
+
 
     public Rama updateRama(Long id, Rama ramaActualizada) {
-        LOGGER.info(String.format("Actualizando la rama con id %d", id));
+    LOGGER.info(String.format("Actualizando la rama con id %d", id));
 
-        Rama existente = ramaRepository.findById(id)
-                .orElseThrow(() -> new EntidadNoEncontradaException("Rama no encontrada con ID: " + id));
+    Rama existente = ramaRepository.findById(id)
+            .orElseThrow(() -> new EntidadNoEncontradaException("Rama no encontrada con ID: " + id));
 
-        // Aquí ignoras el ramaActualizada.getId() y actualizas solo los campos
-        // necesarios
-        existente.setLongitud(ramaActualizada.getLongitud());
-        existente.setNumHojas(ramaActualizada.getNumHojas());
-        existente.setArbol(ramaActualizada.getArbol());
+    // Actualiza los campos simples
+    existente.setLongitud(ramaActualizada.getLongitud());
+    existente.setNumHojas(ramaActualizada.getNumHojas());
 
-        return ramaRepository.save(existente);
+    // Gestiona la sincronización de la relación Arbol-Rama
+    Arbol arbolActual = existente.getArbol();
+    Arbol arbolNuevo = ramaActualizada.getArbol();
+
+    if (arbolActual != null && !arbolActual.equals(arbolNuevo)) {
+        // Quitar esta rama del árbol antiguo
+        arbolActual.removeRama(existente);
     }
+
+    if (arbolNuevo != null && !arbolNuevo.equals(arbolActual)) {
+        // Añadir esta rama al árbol nuevo (esto también hace existente.setArbol)
+        arbolNuevo.addRama(existente);
+    }
+
+    // Si arbolNuevo es null, significa que la rama queda sin árbol (desvinculada)
+    if (arbolNuevo == null) {
+        existente.setArbol(null);
+    }
+
+    return ramaRepository.save(existente);
+}
+
 
     public void deleteArbol(Long id) {
 
