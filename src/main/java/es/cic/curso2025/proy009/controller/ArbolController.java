@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import es.cic.curso2025.proy009.model.Arbol;
 import es.cic.curso2025.proy009.model.Rama;
 import es.cic.curso2025.proy009.service.ArbolService;
+import jakarta.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/arboles")
@@ -82,17 +83,27 @@ public class ArbolController {
         return arbolCreado;
     }
 
-    @PostMapping("/ramas")
-    public Rama createRama(@RequestBody Rama rama) {
+    @PostMapping("/{idArbol}/nuevaRama")
+    public Arbol createRamaEnArbol(@PathVariable Long idArbol, @RequestBody Rama rama) {
         if (rama.getId() != null) {
             throw new ModificacionSecurityException("Has tratado de modificar mediante creación");
         }
 
-        LOGGER.info("Enpoint POST /arboles/ramas subir rama a BBDD");
+        LOGGER.info("Endpoint POST /arboles/{}/nuevaRama subir rama a BBDD", idArbol);
 
-        Rama ramaCreada = arbolService.createRama(rama);
+        // Buscar el árbol por id
+        Arbol arbol = arbolService.getArbol(idArbol)
+                .orElseThrow(() -> new EntityNotFoundException("Árbol no encontrado con ID: " + idArbol));
 
-        return ramaCreada;
+        // Asignar el árbol a la rama
+        rama.setArbol(arbol);
+
+        // Guardar la rama (esto debe estar en tu servicio)
+        arbolService.createRama(rama);
+
+        // Devolver el árbol actualizado con las ramas
+        return arbolService.getArbol(idArbol)
+                .orElseThrow(() -> new EntityNotFoundException("Árbol no encontrado con ID: " + idArbol));
     }
 
     @PutMapping("/{id}")

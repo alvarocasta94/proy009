@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,6 +15,11 @@ import jakarta.persistence.ManyToOne;
 
 
 @Entity
+@JsonIdentityInfo(
+    generator = ObjectIdGenerators.PropertyGenerator.class,
+    property = "id",
+    scope = Rama.class
+)
 public class Rama {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -23,7 +29,7 @@ public class Rama {
     @Column(name = "num_hojas")
     private int numHojas;
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Arbol arbol;
 
     

@@ -15,6 +15,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 
+
+@JsonIdentityInfo(
+    generator = ObjectIdGenerators.PropertyGenerator.class,
+    property = "id",
+    scope = Arbol.class
+)
+
 @Entity
 public class Arbol {
     @Id
@@ -28,6 +35,7 @@ public class Arbol {
 
     @OneToMany(mappedBy = "arbol", cascade = { CascadeType.PERSIST, CascadeType.REMOVE,
             CascadeType.MERGE }, fetch = FetchType.LAZY, orphanRemoval = true)
+            
     private List<Rama> ramas = new ArrayList<>();
 
     public void addRama(Rama rama) {
@@ -107,6 +115,10 @@ public class Arbol {
         if (id != other.getId())
             return false;
         return true;
+    }
+
+    public void setRamas(List<Rama> ramas) {
+        this.ramas = ramas;
     }
 
 }
