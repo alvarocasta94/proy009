@@ -238,6 +238,7 @@ public class ArbolServiceIntegrationTest {
 
 
     @Test
+    @Transactional
 void testAñadirRamaALaListaDeUnArbolYPersistir() {
     // Crear y guardar árbol
     Arbol arbol = new Arbol();
@@ -267,6 +268,7 @@ void testAñadirRamaALaListaDeUnArbolYPersistir() {
 }
 
 @Test
+@Transactional
 void testEliminarRamaDeUnArbolYPersistirCambio() {
     // Crear árbol y rama, establecer relación
     Arbol arbol = new Arbol();
@@ -299,6 +301,7 @@ void testEliminarRamaDeUnArbolYPersistirCambio() {
 }
 
 @Test
+@Transactional
 void testActualizarArbolConListaModificadaDeRamas() {
     // Crear árbol
     Arbol arbol = new Arbol();

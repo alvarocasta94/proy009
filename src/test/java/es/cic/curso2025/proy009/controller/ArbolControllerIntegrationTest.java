@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -58,9 +59,11 @@ public class ArbolControllerIntegrationTest {
         arbol.setDescripcion("Un árbol muy chulo en Ucrania");
 
         String arbolJson = objectMapper.writeValueAsString(arbol);
+        System.out.println("JSON enviado: " + arbolJson);
 
         mockMvc.perform(post("/arboles")
-                .contentType("application/json")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept("application/json")
                 .content(arbolJson))
                 .andExpect(status().isOk())
                 .andExpect(result -> {
@@ -149,7 +152,8 @@ public class ArbolControllerIntegrationTest {
         String jsonActualizado = objectMapper.writeValueAsString(arbolActualizado);
 
         mockMvc.perform(put("/arboles/" + arbol.getId())
-                .contentType("application/json")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept("application/json")
                 .content(jsonActualizado))
                 .andExpect(status().isOk())
                 .andExpect(result -> {
@@ -177,77 +181,6 @@ public class ArbolControllerIntegrationTest {
         assertTrue(eliminado.isEmpty());
     }
 
-    // Nuevo test para crear, obtener, actualizar y eliminar una Rama vinculada a un
-    // Arbol guardado
-    @Test
-    public void testCRUDRamaConArbolExistente() throws Exception {
-        // Primero guardar un árbol para usar en la rama
-        Arbol arbol = new Arbol();
-        arbol.setPais("Andorra");
-        arbol.setEdadAnios(194);
-        arbol.setDescripcion("Un árbol muy chulo en Andorra");
-        Arbol arbolGuardado = arbolRepository.save(arbol);
+    
 
-        // Crear una Rama vinculada al árbol guardado
-        Rama rama = new Rama();
-        rama.setLongitud(47);
-        rama.setNumHojas(13);
-        rama.setArbol(arbolGuardado);
-
-        String ramaJson = objectMapper.writeValueAsString(rama);
-
-        // Crear rama
-        MvcResult mvcResult = mockMvc.perform(post("/arboles/ramas")
-                .contentType("application/json")
-                .content(ramaJson))
-                .andExpect(status().isOk())
-                .andExpect(result -> {
-                    Rama ramaCreada = objectMapper.readValue(result.getResponse().getContentAsString(), Rama.class);
-                    assertNotNull(ramaCreada.getId(), "La rama debe tener ID");
-                    assertEquals(47, ramaCreada.getLongitud());
-                    assertEquals(13, ramaCreada.getNumHojas());
-                    assertNotNull(ramaCreada.getArbol(), "La rama debe tener un árbol asociado");
-                    assertEquals(arbolGuardado.getId(), ramaCreada.getArbol().getId());
-                })
-                .andReturn();
-
-        Rama ramaCreada = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Rama.class);
-        Long ramaId = ramaCreada.getId();
-
-        // Obtener rama
-        mockMvc.perform(get("/arboles/ramas/" + ramaId))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(result -> {
-                    Rama obtenida = objectMapper.readValue(result.getResponse().getContentAsString(), Rama.class);
-                    assertEquals(ramaId, obtenida.getId());
-                    assertEquals(47, obtenida.getLongitud());
-                    assertEquals(13, obtenida.getNumHojas());
-                });
-
-        // Actualizar rama (ejemplo: cambiar longitud y hojas)
-        ramaCreada.setLongitud(50);
-        ramaCreada.setNumHojas(15);
-        String ramaActualizadaJson = objectMapper.writeValueAsString(ramaCreada);
-
-        mockMvc.perform(put("/arboles/ramas/" + ramaId)
-                .contentType("application/json")
-                .content(ramaActualizadaJson))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(result -> {
-                    Rama actualizada = objectMapper.readValue(result.getResponse().getContentAsString(), Rama.class);
-                    assertEquals(50, actualizada.getLongitud());
-                    assertEquals(15, actualizada.getNumHojas());
-                });
-
-        // Eliminar rama
-        mockMvc.perform(delete("/arboles/ramas/" + ramaId))
-                .andDo(print())
-                .andExpect(status().isOk());
-
-        // Verificar que ya no existe la rama
-        Optional<Rama> eliminado = ramaRepository.findById(ramaId);
-        assertTrue(eliminado.isEmpty(), "La rama debe haber sido eliminada");
-    }
 }

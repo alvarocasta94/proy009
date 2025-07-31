@@ -1,7 +1,9 @@
 package es.cic.curso2025.proy009.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+
 
 @Entity
 public class Rama {
@@ -20,10 +23,7 @@ public class Rama {
     @Column(name = "num_hojas")
     private int numHojas;
     
-
-    @JsonIgnore
     @ManyToOne
-    @JsonBackReference
     private Arbol arbol;
 
     
