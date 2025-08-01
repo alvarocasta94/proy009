@@ -1,39 +1,28 @@
 package es.cic.curso2025.proy009.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
-
 @Entity
-@JsonIdentityInfo(
-    generator = ObjectIdGenerators.PropertyGenerator.class,
-    property = "id",
-    scope = Rama.class
-)
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = Rama.class)
 public class Rama {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Column(name = "longitud")
     private int longitud;
-    @Column(name = "num_hojas")
     private int numHojas;
-    
+
     @ManyToOne(fetch = FetchType.EAGER)
     private Arbol arbol;
 
-    
-    
     public Long getId() {
         return id;
     }
@@ -50,8 +39,6 @@ public class Rama {
         return arbol;
     }
 
-
-    
     public void setId(Long id) {
         this.id = id;
     }
@@ -98,7 +85,4 @@ public class Rama {
         return "Rama [id=" + id + ", longitud=" + longitud + ", numHojas=" + numHojas + "]";
     }
 
-   
-
-    
 }
